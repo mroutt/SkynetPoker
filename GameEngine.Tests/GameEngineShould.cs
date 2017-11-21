@@ -14,49 +14,31 @@ namespace GameEngine.Tests
         }
 
         [Fact]
-        public void ReturnLogOfGameWithInitialState()
+        public void ReturnFullGameLogs()
         {
-            var gameLog = _engine.PlayGame();
-            var initialLogEvent = gameLog.First();
-            var initialGameState = initialLogEvent.NewGameState;
-            string initialEventDescription = initialLogEvent.EventDescription;
+            var player1 = new MockPlayer("Billy", 1000, 1) { PlayerActionWhenRequested = new PlayerAction("Raise", 100) };
+            var player2 = new MockPlayer("John", 1000, 2) { PlayerActionWhenRequested = new PlayerAction("Call", 100) };
 
-            Assert.Equal("Starting game.", initialEventDescription);
-            Assert.NotNull(initialGameState);
-            Assert.NotEmpty(initialGameState.Players);
-
-            foreach (var player in initialGameState.Players)
+            var players = new List<Player>()
             {
-                Assert.NotNull(player.Name);
-                Assert.NotNull(player.Chips);
-                Assert.NotNull(player.Seat);
-            }
+                player1,
+                player2
+            };
 
-            Assert.Equal(1, initialGameState.DealerSeat);
-        }
+            _engine.Players = players;
 
-        [Fact]
-        public void ReturnMoreThanOneLogEventInGame()
-        {
-            var gameLog = _engine.PlayGame();
-            Assert.True(gameLog.Count() > 1);
-        }
-
-        [Fact]
-        public void ReturnAWinnerAfterGame()
-        {
             var gameLog = _engine.PlayGame();
 
-            var endGameState = gameLog.Last().NewGameState;
+            var startGameMessage = gameLog.First();
+            var endGameMessage = gameLog.Last();
 
-            var players = endGameState.Players;
-
-            Assert.Equal(1, players.Where(x => x.Chips > 0).Count());
-            Assert.Contains("has won the game.", gameLog.Last().EventDescription);
+            Assert.Equal("Starting game.", startGameMessage);
+            Assert.Contains("has won the game.", endGameMessage);
+            Assert.Equal(42, gameLog.Count());
         }
         
         [Fact]
-        public void PlayGameDealsCards()
+        public void DealCards()
         {
             var player1 = new MockPlayer("Billy", 1000, 1);
             var player2 = new MockPlayer("John", 1000, 2);
@@ -115,7 +97,7 @@ namespace GameEngine.Tests
         }
 
         [Fact]
-        public void AwardPotsAfterGame()
+        public void EndGameWithAccurateNumberOfChips()
         {
             var player1 = new MockPlayer("Billy", 1000, 1) { PlayerActionWhenRequested = new PlayerAction("Raise", 100) };
             var player2 = new MockPlayer("John", 1000, 2) { PlayerActionWhenRequested = new PlayerAction("Call", 100) };
