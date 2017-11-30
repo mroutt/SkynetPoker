@@ -38,10 +38,13 @@ namespace GameEngine.Tests
 
             var player1 = new MockPlayer("Billy", 1000, 1);
             var player2 = new MockPlayer("John", 1000, 2);
+            var player3 = new MockPlayer("Steve", 1000, 3);
 
-            gameState.Players = new List<Player>() { player1, player2 };
+            gameState.Players = new List<Player>() { player1, player2, player3 };
 
             var mockDeck = new MockDeck();
+            mockDeck.PushCardOntoDeck(new Card('S', 14));
+            mockDeck.PushCardOntoDeck(new Card('D', 3));
             mockDeck.PushCardOntoDeck(new Card('S', 5));
             mockDeck.PushCardOntoDeck(new Card('D', 7));
             mockDeck.PushCardOntoDeck(new Card('H', 6));
@@ -49,7 +52,8 @@ namespace GameEngine.Tests
 
             Hand.Play(gameState, log, mockDeck);
 
-            Assert.True(player1.Chips > player2.Chips);
+            Assert.True(player3.Chips > player1.Chips);
+            Assert.True(player3.Chips > player2.Chips);
         }
 
         [Fact]
@@ -60,10 +64,13 @@ namespace GameEngine.Tests
 
             var player1 = new MockPlayer("Billy", 1000, 1);
             var player2 = new MockPlayer("John", 1000, 2);
+            var player3 = new MockPlayer("Steve", 1000, 3);
 
-            gameState.Players = new List<Player>() { player1, player2 };
+            gameState.Players = new List<Player>() { player1, player2, player3 };
 
             var mockDeck = new MockDeck();
+            mockDeck.PushCardOntoDeck(new Card('C', 14));
+            mockDeck.PushCardOntoDeck(new Card('S', 14));
             mockDeck.PushCardOntoDeck(new Card('C', 5));
             mockDeck.PushCardOntoDeck(new Card('S', 5));
             mockDeck.PushCardOntoDeck(new Card('D', 2));
@@ -71,7 +78,8 @@ namespace GameEngine.Tests
 
             Hand.Play(gameState, log, mockDeck);
 
-            Assert.True(player2.Chips > player1.Chips);
+            Assert.True(player3.Chips > player1.Chips);
+            Assert.True(player3.Chips > player2.Chips);
         }
 
 
