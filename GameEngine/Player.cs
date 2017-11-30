@@ -23,7 +23,7 @@
 
         }
 
-        public virtual void DealCards(int card1, int card2)
+        public virtual void DealCards(Card card1, Card card2)
         {
         }
     }

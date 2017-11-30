@@ -53,8 +53,8 @@ namespace GameEngine.Tests
 
             _engine.PlayGame();
 
-            Assert.True(player1.Card1 > 0);
-            Assert.True(player1.Card2 > 0);
+            Assert.NotNull(player1.Card1);
+            Assert.NotNull(player1.Card2);
         }
 
         [Fact]

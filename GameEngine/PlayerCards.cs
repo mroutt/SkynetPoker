@@ -3,10 +3,10 @@
     public class PlayerCards
     {
         public int Seat { get; set; }
-        public int Card1 { get; set; }
-        public int Card2 { get; set; }
+        public Card Card1 { get; set; }
+        public Card Card2 { get; set; }
 
-        public PlayerCards(int seat, int card1, int card2)
+        public PlayerCards(int seat, Card card1, Card card2)
         {
             Seat = seat;
             Card1 = card1;

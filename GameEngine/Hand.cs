@@ -13,7 +13,8 @@ namespace GameEngine
 
             log.Add("Dealing a new hand.");
 
-            var cards = DealCards(players);
+            var deck = new Deck();
+            var cards = DealCards(players, deck);
             int currentPot = 0;
 
             foreach(var player in players)
@@ -31,16 +32,16 @@ namespace GameEngine
             log.Add(FormatPlayerWonHandMessage(winningPlayer, currentPot));
         }
 
-        private static List<PlayerCards> DealCards(List<Player> players)
+        private static List<PlayerCards> DealCards(List<Player> players, Deck deck)
         {
             var cards = new List<PlayerCards>();
-            int cardToDeal = 1;
 
             foreach (var player in players)
             {
-                cards.Add(new PlayerCards(player.Seat, cardToDeal, cardToDeal));
-                player.DealCards(cardToDeal, cardToDeal);
-                cardToDeal += 1;
+                var card1 = deck.DrawCard();
+                var card2 = deck.DrawCard();
+                cards.Add(new PlayerCards(player.Seat, card1, card2));
+                player.DealCards(card1, card2);
             }
 
             return cards;
@@ -98,7 +99,7 @@ namespace GameEngine
             int maxScoreSeat = 0;
             foreach (var card in cards)
             {
-                int score = card.Card1 + card.Card2;
+                int score = card.Card1.Value + card.Card2.Value;
 
                 if (score > maxScore)
                 {
