@@ -9,6 +9,73 @@ namespace GameEngine.Tests
     public class HandShould
     {
         [Fact]
+        public void AwardPotToPlayerWithPair()
+        {
+            var log = new List<string>();
+            var gameState = new GameState();
+
+            var player1 = new MockPlayer("Billy", 1000, 1);
+            var player2 = new MockPlayer("John", 1000, 2);
+
+            gameState.Players = new List<Player>() { player1, player2 };
+
+            var mockDeck = new MockDeck();
+            mockDeck.PushCardOntoDeck(new Card('C', 11));
+            mockDeck.PushCardOntoDeck(new Card('S', 5));
+            mockDeck.PushCardOntoDeck(new Card('D', 7));
+            mockDeck.PushCardOntoDeck(new Card('H', 7));
+
+            Hand.Play(gameState, log, mockDeck);
+
+            Assert.True(player1.Chips > player2.Chips);
+        }
+
+        [Fact]
+        public void AwardPotToPlayerWithHighCard()
+        {
+            var log = new List<string>();
+            var gameState = new GameState();
+
+            var player1 = new MockPlayer("Billy", 1000, 1);
+            var player2 = new MockPlayer("John", 1000, 2);
+
+            gameState.Players = new List<Player>() { player1, player2 };
+
+            var mockDeck = new MockDeck();
+            mockDeck.PushCardOntoDeck(new Card('S', 5));
+            mockDeck.PushCardOntoDeck(new Card('D', 7));
+            mockDeck.PushCardOntoDeck(new Card('H', 6));
+            mockDeck.PushCardOntoDeck(new Card('C', 11));
+
+            Hand.Play(gameState, log, mockDeck);
+
+            Assert.True(player1.Chips > player2.Chips);
+        }
+
+        [Fact]
+        public void AwardPotToPlayerWithHighPair()
+        {
+            var log = new List<string>();
+            var gameState = new GameState();
+
+            var player1 = new MockPlayer("Billy", 1000, 1);
+            var player2 = new MockPlayer("John", 1000, 2);
+
+            gameState.Players = new List<Player>() { player1, player2 };
+
+            var mockDeck = new MockDeck();
+            mockDeck.PushCardOntoDeck(new Card('C', 5));
+            mockDeck.PushCardOntoDeck(new Card('S', 5));
+            mockDeck.PushCardOntoDeck(new Card('D', 2));
+            mockDeck.PushCardOntoDeck(new Card('H', 2));
+
+            Hand.Play(gameState, log, mockDeck);
+
+            Assert.True(player2.Chips > player1.Chips);
+        }
+
+
+        [Fact]
         public void DealUniqueCardsFromDeck()
         {
             var log = new List<string>();
@@ -17,13 +84,7 @@ namespace GameEngine.Tests
             var player1 = new MockPlayer("Billy", 1000, 1);
             var player2 = new MockPlayer("John", 1000, 2);
 
-            var players = new List<Player>()
-            {
-                player1,
-                player2
-            };
-
-            gameState.Players = players;
+            gameState.Players = new List<Player>() { player1, player2 };
 
             Hand.Play(gameState, log);
 

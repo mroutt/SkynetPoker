@@ -13,7 +13,7 @@ namespace GameEngine
             Shuffle();
         }
 
-        public Card DrawCard()
+        public virtual Card DrawCard()
         {
             return _shuffledCards.Pop();
         }

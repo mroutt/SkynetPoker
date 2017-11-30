@@ -7,17 +7,16 @@ namespace GameEngine
 {
     public class Hand
     {
-        public static void Play(GameState gameState, List<string> log)
+        public static void Play(GameState gameState, List<string> log, Deck deck)
         {
             var players = gameState.Players;
 
             log.Add("Dealing a new hand.");
 
-            var deck = new Deck();
             var cards = DealCards(players, deck);
             int currentPot = 0;
 
-            foreach(var player in players)
+            foreach (var player in players)
             {
                 var action = player.GetPlayerAction();
                 currentPot = ApplyPlayerActionAndReturnUpdatedPot(action, player, currentPot);
@@ -30,6 +29,12 @@ namespace GameEngine
             AwardPotToWinningPlayer(winningPlayer, currentPot);
 
             log.Add(FormatPlayerWonHandMessage(winningPlayer, currentPot));
+
+        }
+
+        public static void Play(GameState gameState, List<string> log)
+        {
+            Play(gameState, log, new Deck());         
         }
 
         private static List<PlayerCards> DealCards(List<Player> players, Deck deck)
@@ -95,20 +100,60 @@ namespace GameEngine
 
         private static Player DetermineWinningPlayer(List<PlayerCards> cards, List<Player> players)
         {
-            int maxScore = 0;
-            int maxScoreSeat = 0;
+            int winningSeat = DetermineWinningSeat(cards, players);
+            return GetPlayerAtSeat(players, winningSeat);
+        }
+
+        private static int DetermineWinningSeat(List<PlayerCards> cards, List<Player> players)
+        {
+            int highPairSeat = FindSeatWithHighPair(cards);
+            if (highPairSeat > 0)
+                return highPairSeat;
+
+            return FindSeatWithHighCard(cards);
+        }
+
+        private static Player GetPlayerAtSeat(List<Player> players, int seat)
+        {
+            return players.Where(x => x.Seat == seat).Single();
+        }
+
+        private static int FindSeatWithHighPair(List<PlayerCards> cards)
+        {
+            int highPairValue = 0;
+            int highPairSeat = 0;
+
             foreach (var card in cards)
             {
-                int score = card.Card1.Value + card.Card2.Value;
-
-                if (score > maxScore)
+                if (card.Card1.Value == card.Card2.Value)
                 {
-                    maxScore = score;
-                    maxScoreSeat = card.Seat;
+                    if (card.Card1.Value > highPairValue)
+                    {
+                        highPairValue = card.Card1.Value;
+                        highPairSeat = card.Seat;
+                    }
                 }
             }
 
-            return players.Where(x => x.Seat == maxScoreSeat).Single();
+            return highPairSeat;
+        }
+
+        private static int FindSeatWithHighCard(List<PlayerCards> cards)
+        {
+            int highValue = 0;
+            int highValueSeat = 0;
+            foreach (var card in cards)
+            {
+                int highValueForSeat = Math.Max(card.Card1.Value, card.Card2.Value);
+
+                if (highValueForSeat > highValue)
+                {
+                    highValue = highValueForSeat;
+                    highValueSeat = card.Seat;
+                }
+            }
+
+            return highValueSeat;
         }
     }
 }
