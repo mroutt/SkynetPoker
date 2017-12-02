@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace GameEngine
 {
@@ -6,11 +7,19 @@ namespace GameEngine
     {
         public List<Player> Players { get; set; }
 
-        public int DealerSeat { get; private set; }
+        public int DealerPosition { get; private set; }
 
         public GameState()
         {
-            DealerSeat = 1;
+            DealerPosition = 1;
+        }
+
+        public void AdvanceAfterHand()
+        {
+            if ((DealerPosition + 1) > Players.Max(x => x.Seat))
+                DealerPosition = 1;
+            else
+                DealerPosition++;
         }
     }
 }

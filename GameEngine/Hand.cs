@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace GameEngine
 {
@@ -9,27 +8,40 @@ namespace GameEngine
     {
         public static void Play(GameState gameState, List<string> log, Deck deck)
         {
+            int currentPot = 0;
             var players = gameState.Players;
 
             log.Add("Dealing a new hand.");
 
-            var cards = DealCards(players, deck);
-            int currentPot = 0;
+            var seats = FillSeatsWithPlayers(players, gameState.DealerPosition);
 
-            foreach (var player in players)
+            currentPot += CollectBlinds(seats);
+
+            DealCardsToSeats(seats, deck);
+
+            foreach (var seat in seats)
             {
-                var action = player.GetPlayerAction();
-                currentPot = ApplyPlayerActionAndReturnUpdatedPot(action, player, currentPot);
+                var action = seat.RequestAction();
+                if (action.Action == "Fold")
+                    seat.StillInHand = false;
+                else
+                {
+                    seat.TakeChipsFromPlayer(action.ChipAmount);
+                    currentPot += action.ChipAmount;
+                }
+
                 NotifyPlayersOfAction(action, players);
-                log.Add(FormatPlayerActionEventMessage(action, player));
+                log.Add(FormatPlayerActionEventMessage(action, seat.Player));
+
+                if (OnlyOneSeatInTheHand(seats))
+                    break;
             }
 
-            var winningPlayer = DetermineWinningPlayer(cards, players);
+            var winningPlayer = DetermineWinningPlayer(seats, players);
 
             AwardPotToWinningPlayer(winningPlayer, currentPot);
 
             log.Add(FormatPlayerWonHandMessage(winningPlayer, currentPot));
-
         }
 
         public static void Play(GameState gameState, List<string> log)
@@ -37,30 +49,57 @@ namespace GameEngine
             Play(gameState, log, new Deck());         
         }
 
-        private static List<PlayerCards> DealCards(List<Player> players, Deck deck)
+        private static int CollectBlinds(List<Seat> seats)
         {
-            var cards = new List<PlayerCards>();
+            int smallBlind = 50;
+            int bigBlind = 100;
 
-            foreach (var player in players)
+            seats.Where(x => x.SmallBlind).Single().TakeChipsFromPlayer(smallBlind);
+            seats.Where(x => x.BigBlind).Single().TakeChipsFromPlayer(bigBlind);
+
+            return smallBlind + bigBlind;
+        }
+
+        private static List<Seat> FillSeatsWithPlayers(List<Player> players, int dealerPosition)
+        {
+            var seats = new List<Seat>();
+            int indexOfDealer = dealerPosition - 1;
+            int indexOfFirstAction = indexOfDealer + 3;
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                int indexOfPlayerToAddNext = (indexOfFirstAction + i) % players.Count; 
+
+                seats.Add(new Seat(players[indexOfPlayerToAddNext]));
+            }
+
+            SetBlindSeats(seats);
+
+            return seats;
+        }
+
+        private static void SetBlindSeats(List<Seat> seats)
+        {
+            int smallBlindIndex = (seats.Count + 2) % seats.Count;
+            int bigBlindIndex = (seats.Count + 3) % seats.Count;
+
+            seats[smallBlindIndex].SmallBlind = true;
+            seats[bigBlindIndex].BigBlind = true;
+        }
+
+        private static bool OnlyOneSeatInTheHand(List<Seat> seats)
+        {
+            return seats.Where(x => x.StillInHand).Count() == 1;
+        }
+
+        private static void DealCardsToSeats(List<Seat> seats, Deck deck)
+        {
+            foreach (var seat in seats)
             {
                 var card1 = deck.DrawCard();
                 var card2 = deck.DrawCard();
-                cards.Add(new PlayerCards(player.Seat, card1, card2));
-                player.DealCards(card1, card2);
+                seat.DealCards(card1, card2);
             }
-
-            return cards;
-        }
-
-        private static int ApplyPlayerActionAndReturnUpdatedPot(PlayerAction action, Player player, int currentPot)
-        {
-            if (action.Action == "Raise" || action.Action == "Call")
-            {
-                player.Chips -= action.ChipAmount;
-                currentPot += action.ChipAmount;
-            }
-
-            return currentPot;
         }
 
         private static void NotifyPlayersOfAction(PlayerAction action, List<Player> players)
@@ -98,39 +137,36 @@ namespace GameEngine
             player.Chips += currentPot;
         }
 
-        private static Player DetermineWinningPlayer(List<PlayerCards> cards, List<Player> players)
+        private static Player DetermineWinningPlayer(List<Seat> seats, List<Player> players)
         {
-            int winningSeat = DetermineWinningSeat(cards, players);
-            return GetPlayerAtSeat(players, winningSeat);
+            return DetermineWinningSeat(seats, players).Player;
         }
 
-        private static int DetermineWinningSeat(List<PlayerCards> cards, List<Player> players)
+        private static Seat DetermineWinningSeat(List<Seat> seats, List<Player> players)
         {
-            int highPairSeat = FindSeatWithHighPair(cards);
-            if (highPairSeat > 0)
+            if (OnlyOneSeatInTheHand(seats))
+                return seats.Where(x => x.StillInHand).Single();
+
+            var highPairSeat = FindSeatWithHighPair(seats);
+            if (highPairSeat != null)
                 return highPairSeat;
 
-            return FindSeatWithHighCard(cards);
+            return FindSeatWithHighCard(seats);
         }
 
-        private static Player GetPlayerAtSeat(List<Player> players, int seat)
-        {
-            return players.Where(x => x.Seat == seat).Single();
-        }
-
-        private static int FindSeatWithHighPair(List<PlayerCards> cards)
+        private static Seat FindSeatWithHighPair(List<Seat> seats)
         {
             int highPairValue = 0;
-            int highPairSeat = 0;
+            Seat highPairSeat = null;
 
-            foreach (var card in cards)
+            foreach (var seat in seats)
             {
-                if (card.Card1.Value == card.Card2.Value)
+                if (seat.Card1.Value == seat.Card2.Value)
                 {
-                    if (card.Card1.Value > highPairValue)
+                    if (seat.Card1.Value > highPairValue)
                     {
-                        highPairValue = card.Card1.Value;
-                        highPairSeat = card.Seat;
+                        highPairValue = seat.Card1.Value;
+                        highPairSeat = seat;
                     }
                 }
             }
@@ -138,18 +174,18 @@ namespace GameEngine
             return highPairSeat;
         }
 
-        private static int FindSeatWithHighCard(List<PlayerCards> cards)
+        private static Seat FindSeatWithHighCard(List<Seat> seats)
         {
             int highValue = 0;
-            int highValueSeat = 0;
-            foreach (var card in cards)
+            Seat highValueSeat = null;
+            foreach (var seat in seats)
             {
-                int highValueForSeat = Math.Max(card.Card1.Value, card.Card2.Value);
+                int highValueForSeat = Math.Max(seat.Card1.Value, seat.Card2.Value);
 
                 if (highValueForSeat > highValue)
                 {
                     highValue = highValueForSeat;
-                    highValueSeat = card.Seat;
+                    highValueSeat = seat;
                 }
             }
 

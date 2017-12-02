@@ -15,6 +15,10 @@ namespace GameEngine
             while(MoreThanOnePlayerHasChips(Players))
             {
                 Hand.Play(currentGameState, gameLog);
+
+                currentGameState.AdvanceAfterHand();
+
+                NotifyPlayersOfGameEvent(Players, currentGameState);
             }
 
             var winningPlayer = DetermineWinningPlayer(Players);
@@ -22,6 +26,12 @@ namespace GameEngine
             gameLog.Add(FormatWinningGameMessage(winningPlayer));
 
             return gameLog;
+        }
+
+        private void NotifyPlayersOfGameEvent(List<Player> players, GameState newGameState)
+        {
+            foreach (var player in players)
+                player.NotifyOfGameEvent(newGameState);
         }
 
         private string FormatWinningGameMessage(Player winningPlayer)

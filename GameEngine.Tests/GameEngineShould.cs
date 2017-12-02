@@ -14,6 +14,25 @@ namespace GameEngine.Tests
         }
 
         [Fact]
+        public void AdvanceDealerSeatAfterHand()
+        {
+            var player1 = new MockPlayer("Billy", 1000, 1) { PlayerActionWhenRequested = new PlayerAction("Raise", 100) };
+            var player2 = new MockPlayer("John", 1000, 2) { PlayerActionWhenRequested = new PlayerAction("Call", 100) };
+
+            var players = new List<Player>()
+            {
+                player1,
+                player2
+            };
+
+            _engine.Players = players;
+
+            var gameLog = _engine.PlayGame();
+
+            Assert.True(player1.NumberOfDealerSeatAdvances > 1);
+        }
+
+        [Fact]
         public void ReturnFullGameLogs()
         {
             var player1 = new MockPlayer("Billy", 1000, 1) { PlayerActionWhenRequested = new PlayerAction("Raise", 100) };
@@ -98,8 +117,8 @@ namespace GameEngine.Tests
         [Fact]
         public void EndGameWithAccurateNumberOfChips()
         {
-            var player1 = new MockPlayer("Billy", 1000, 1) { PlayerActionWhenRequested = new PlayerAction("Raise", 100) };
-            var player2 = new MockPlayer("John", 1000, 2) { PlayerActionWhenRequested = new PlayerAction("Call", 100) };
+            var player1 = new MockPlayer("Billy", 1000, 1) { PlayerActionWhenRequested = new PlayerAction("Raise", 50) };
+            var player2 = new MockPlayer("John", 1000, 2) { PlayerActionWhenRequested = new PlayerAction("Call", 50) };
 
             var players = new List<Player>()
             {

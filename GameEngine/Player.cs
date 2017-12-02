@@ -23,6 +23,11 @@
 
         }
 
+        public virtual void NotifyOfGameEvent(GameState newGameState)
+        {
+
+        }
+
         public virtual void DealCards(Card card1, Card card2)
         {
         }
